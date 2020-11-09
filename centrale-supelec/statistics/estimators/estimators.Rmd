@@ -1,0 +1,423 @@
+---
+title: "Lab1 - Estimators"
+author: "BETTAIEB Ghassen"
+date: "09/10/2020"
+output: html_notebook
+---
+Deadline 20/10
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Rayleigh Distribution
+
+## Theory
+The Rayleigh distribution is defined with the following density function :
+$$
+  f_a(x) = \frac{x}{a} e^{-\frac{x^2}{2a}}
+$$
+
+It is used in a wide variety of problems, in particular it can be use to model the yearly maximum height of a river.
+In that scenario, we would like to predict the probability of the river to reach over 6m high which would leads to flooding of the neighboring area.
+
+For that, we will need to estimate the parameters of our model and then study the estimators.
+
+### Estimators
+#### Maximum likelihood estimator
+First, we will derive an estimator with the maximum likelihood method.The likelihood of the Rayleigh distribution is as follows :
+$$
+  \mathcal{L}(x | a) = \prod_{i=1}^{n} \frac{x_i}{a} e^{-\frac{x_i^2}{2a}}
+$$
+It is clear that to maximise this function, it is easier to consider $L = log(\mathcal L)$ :
+$$
+  l(x|a) = \sum_{i=1}^{n} log(x_i) - log(a) - \frac{x_i^2}{2a}
+$$
+$$
+  \frac{∂}{∂a} l(x|a) = -\frac{n}{a} + \frac{1}{2a^2} · \sum_{i=1}^{n}x_i^2
+$$
+The extremums verify the following:
+$$
+  \frac{∂}{∂a} l(x|â_n) = 0\ \ \Longleftrightarrow\ \ \boxed{â_n = \frac{1}{2n} · \sum_{i=1}^{n}x_i^2}\ \ \ \ \ \  (a>0)
+$$
+$$
+\frac{∂^2}{∂a^2} l(x|â_n) = \frac{n}{â_n^2} - \frac{1}{â_n^3} · \sum_{i=1}^{n}x_i^2 = - \frac{4n^3}{\sum_{i=1}^{n}x_i^2} < 0
+$$
+$\therefore$ $â_n$ is the maximum of $l$, so $â_n$ is also the maximum of $\mathcal{L}$.
+
+$â_n$ is the maximum likelihood estimator of $a$.
+
+
+#### Method of Moment estimator
+Another way to derive an estimator of $a$ is via the method of moment. As we only need to estimate one variable, we will only consider the first moment.
+$$
+E(X) = \int_0^{+\infty} \frac{x^2}{a} e^{-\frac{x^2}{2a}} dx = \sqrt{\frac{\pi a}{2}}
+$$
+$\overline{a}_n$, the method of moment estimator is defined as follows:
+$$
+  \frac 1 n · \sum_{i=1}^{n}x_i = \sqrt{\frac{\pi \overline{a}_n}{2}}
+$$
+$$
+\boxed{\overline{a}_n = \frac{2}{\pi n^2} · \left(\sum_{i=1}^{n}x_i\right)^2}
+$$
+
+### Property of the estimators
+#### Bias
+$$
+E(â_n) = \frac{1}{2n} · \sum_{i=1}^{n}E(X_i^2) = \frac{1}{2} · \int_{0}^{+\infty} \frac{x^3}{a}·e^{-\frac{x^2}{2a}} = a
+$$
+$â_n$ is unbiased.
+
+#### Optimal
+$â_n$ is not optimal if we consider all the estimators; but it is optimal in the class of unbiased estimators because it is efficient.
+$$
+  \tilde{a}_n = \frac{a^2}{1+n}\text{ is an estimator with a smaller MSE than }â_n
+$$
+#### Efficient
+Let us consider $s_a(x) = \frac{∂}{∂a}log(\mathcal{L}(x;a))$ the score function of the distribution.
+The Fisher Information for a n samples vector is defined as follows :
+$$
+  I_n(a) = E\left(s_a(x)·s_a(x)^T\right) = E\left(\left(-\frac{n}{a} + \frac{1}{2a^2}·\sum_{i=1}^{n}x_i^2\right)^2\right) = \frac{n}{a^2}
+$$
+Then the Cramer Rao Bound of the distribution is
+$$
+  CRB(a) = \frac{1}{I_n(a)} \boxed{= \frac{a^2}{n}}
+$$
+The variance of our estimator is the following :
+$$
+  Var(â_n) = E\left(\left(\frac{\sum_{i=1}^{n} x_i^2}{2n}\right)^2\right) - E\left(\frac{\sum_{i=1}^{n} x_i^2}{2n}\right)^2 = \frac{a^2}{n}
+$$
+$\therefore Var(â_n) = CRB(a)$, and $â_n$ is efficient, and so is optimal.
+#### Asymptotically gaussian
+$â_n$ is asymptotically gaussian because it is an estimator derived by the minimun likelihood method and the model is identifiable and $â_n$ is regular.
+
+
+### Pré-application
+The probability $p$ is the probability that the height of the river exceed 6 meters.
+$$
+p = \int_6^{+\infty} \frac{x}{a} e^{-\frac{x^2}{2a}} dx = exp\left(-\frac{18}{a}\right)
+$$
+The probability that at most one disaster occur during one thousand year is the following :
+$$
+  p_{1000} = (1-p)^{999} · (1-p+1000p) = \left(1-exp\left(-\frac{18}{a} \right)\right)^{999}·\left(1+999·exp\left(-\frac{18}{a} \right)\right)
+$$
+
+
+With the following observations :
+$$
+  x = (2,5\ \ \ 1,8\ \ \ 2,9\ \ \ 0,9\ \ \ 2,1\ \ \ 1,7\ \ \ 2,2\ \ \ 2,8)
+$$
+
+$$
+  â_8 = \frac{1}{16} · x·x^T ≈ 2.418125
+$$
+
+```{r calc_estimator, echo=FALSE}
+x = c(2.5, 1.8, 2.9, 0.9, 2.1, 1.7, 2.2, 2.8)
+a = (t(x)%*%x)[1] / 16
+```
+We get the following probability of having at most one disaster occuring during one thousand year.
+$$
+  \hat{p}_{1000} = \left(1-exp\left(-\frac{18}{â} \right)\right)^{999}·\left(1+999·exp\left(-\frac{18}{â} \right)\right) ≈ 0.8830305
+$$
+```{r p1000, echo=FALSE}
+p1000 = (1-exp(-18/a))^999 * (1+999*exp(-18/a))
+```
+
+## Application
+```{r libraries}
+  library(ggplot2)
+```
+
+### Generation of the distribution
+#### Inversion of the CDF
+To generate the Rayleigh distribution, we will use the inversion of the CDF technique.
+Lets define:
+$$
+  F^-(u) = inf\{x, F(x)⩾u\}\ \ \ \text{where F is the CDF of the Rayleigh distribution}
+$$
+$$
+  F^-(u) = inf\left\{x, 1-exp\left(-\frac{x^2}{2a} \right) ⩾ u\right\}
+$$
+$$
+  F^-(u) = \sqrt{-2a·log\left(1-u \right)}\ \ \ \text{well defined on u}\in[0,1[
+$$
+
+$\therefore$ If $U \sim \mathcal{U}_{[0,1]}$, $F^-(U) \sim \mathcal{R}_{ay}(a)$. We can also simplify $1-U$ in $U$ because they both follow the same distribution.
+
+```{r gen_rayleigh_1}
+U = runif(1000)
+X = sqrt(-2 * a * log(U))
+d = as.data.frame(X, col.names="x")
+ggplot(data=d, aes(x=X, y=..density..)) + geom_histogram(binwidth=.3)
+```
+
+#### Composition of multiple random variables
+Another way to generate the Rayleigh distribution would be to use the following fact : if $X\sim \mathcal{N}(0,a)$ and $Y\sim \mathcal{N}(0,a)$, then $Z = \sqrt{X^2 + Y^2} \sim \mathcal{R}_{ay}(a)$, because :
+$$
+  f_Z(z) = \int_{-z}^z \frac{z}{\sqrt{z^2-x^2}} · \left(f_{XY}\left(x, \sqrt{z^2-x^2}\right) + f_{XY}\left(x, -\sqrt{z^2-x^2}\right) \right)
+$$
+$$
+  f_Z(z) = \frac{z}{a}· exp\left(-\frac{z^2}{2a}\right)
+$$
+```{r gen_rayleigh_2}
+X = rnorm(1000, sd=sqrt(a))
+Y = rnorm(1000, sd=sqrt(a))
+Z = sqrt(X*X + Y*Y)
+d = as.data.frame(Z, col.names="z")
+ggplot(data=d, aes(x=Z, y=..density..)) + geom_histogram(binwidth=.3)
+```
+
+
+### Verification of the different properties
+
+#### Unbiasedness
+```{r unbiasedness}
+# Eval E(â-a)
+Na = 10
+Nv = 5
+A = matrix(0, nrow=Na, ncol=Nv)
+for (a in 1:Na)
+{
+  for (i in 1:Nv)
+  {
+    U = runif(10^i)
+    X = sqrt(-2 * a * log(U))
+    ahat = 1/(2*10^i)*sum(X*X)
+    A[a,i] = ahat - a
+  }
+}
+d = as.data.frame(t(A), col.names=1:10)
+matplot(rownames(d),d,type='l')
+```
+
+### Efficiency
+```{r efficency}
+Na = 10
+Nv = 5
+A = matrix(0, nrow=Na, ncol=Nv)
+for (a in 1:Na)
+{
+  for (i in 1:Nv)
+  {
+    U = runif(10^i)
+    X = sqrt(-2 * a * log(U))
+    ahat = 1/(2*10^i)*sum(X*X)
+    A[a,i] = ahat - a
+  }
+}
+d = as.data.frame(t(A), col.names=1:10)
+matplot(rownames(d),d,type='l')
+```
+
+### Asymptotic Normality
+```{r asymptotic_normality}
+a = 5
+N = 10000
+Nv = 10000
+vals = c(1:Nv)
+for (i in 1:Nv)
+{
+  U = runif(N)
+  X = sqrt(-2 * a * log(U))
+  ahat = 1/(2*N)*sum(X*X)
+  vals[i] = sqrt(N)*(ahat - a)
+}
+d = as.data.frame(vals, col.names="x")
+ggplot(data=d, aes(x=vals, y=..density..)) + geom_histogram(binwidth=1.)
+```
+
+
+# Geometric Distribution
+
+## Theory
+
+The geometric distribution is defined by the following PMF
+$$
+  P(X=k)=(1−q)^{k−1}.q , k∈N^{*}
+$$
+
+### Estimators
+
+#### Maximum likelihood estimator
+First, we will derive an estimator with the maximum likelihood method.The likelihood of the Rayleigh distribution is as follows :
+$$
+  \mathcal{L}(x | q) = \prod_{i=1}^{n} (1−q)^{i−1}q = q^{n}e^{ln(1-q)\sum_{i=1}^{n} x_{i}}
+$$
+
+From the previous formula it's clear that this PMF belongs to the exponential family. It is also clear that a sufficient statistic is: 
+$$
+S = \sum_{i=1}^{n} X_{i}
+$$
+
+Let $x_1,...,x_n$ a sample with same distribution as $x$. 
+it is easier to consider $L = log(\mathcal L)$
+
+$$
+l(x|q) = n.log(q) + log(1-q).\sum_{i=1}^{n} (x_i-1)
+$$
+$$
+\frac{∂}{∂q} l(x|q) = \frac{n}{q} - \frac{1}{1-q} · \sum_{i=1}^{n}(x_i - 1)
+$$
+The extremes verify the following:
+$$
+\frac{∂}{∂q} l(x|\hat q_n)) = 0\ \ \Longleftrightarrow\ \ \boxed{\hat q_n = n· \frac{1}{\sum_{i=1}^{n}x_i} = \frac{1}{\overline X_n}}\ \ \ \ \ \  
+$$
+$$
+\frac{∂^2}{∂q^2} l(x|\hat q_n) = -\frac{n}{\hat q^2} - (\frac{1}{1-\hat q})^2· \sum_{i=1}^{n}(x_i - 1) = -\frac{n}{\hat q^2.(1-\hat q)} <0
+$$
+
+Therefore $\hat q_n$ is the maximum of $l$, so $\hat q_n$ is also the maximum of $\mathcal{L}$.
+
+$\hat q_n$ is the maximum likelihood estimator of $q$.
+
+Let us compute the Fisher Information for parameter $q$ (We can use only 1 r.V since our variables are iid)
+
+#### Fischer Information
+
+$$
+\begin{align*}
+I(q) &= E_q[-\frac{∂^2}{∂q^2} l_i(x_i|q)] \\
+&= E_q[-\frac{1}{q^2} - (\frac{1}{1-q})^2·(x_i - 1) ]  \\
+&= \frac{1}{q^2} + (\frac{1}{1-q})^2.(E[x_i] - 1) \\
+&= \frac{1}{q^2.(1-q)}
+\end{align*}
+$$
+#### Estimator Asymptotically gaussian
+
+Let's prove that the maximum likelihood estimator is asymptotically Gaussian
+
+Since $X_1, X_2, ..,X_n$ are $i.i.d$ with $E[X] = \frac {1}{q_0}$ and $Var[X] = \frac {(1-q_0)}{q_0^2}$, We use the CLT Theorem to get:
+$$
+\sqrt{n} (\overline X_n - \frac {1}{q_0}) \xrightarrow[]{d} \mathcal{N}(0, \frac{1-q_0}{q_0^2})
+$$
+where $q_0$ is the true value of the parameter $q$
+Let us consider a function $g$, $g(z) = 1/z$.
+$g$ is  a continuous and continuously differentiable function with $g(1/q) = q\neq 0$, then we can apply the delta method : 
+
+$$
+\sqrt{n} (g(\overline X_n) - g(\frac {1}{q_0})) \xrightarrow[]{d} \mathcal{N}(0, (\frac{∂g(z)}{∂z}|_{1/q})^2 . \frac{1-q_0}{q_0^2})
+$$
+Finally after simple calculations we get:
+$$
+\sqrt{n} (\hat q - q_0) \xrightarrow[]{d} \mathcal{N}(0, (1-q_0).q_0^2) \\
+\implies  \hat q \sim \mathcal{N}(q_0, \frac {(1-q_0).q_0^2}{n})
+$$
+So The estimator is asymptotically Gaussian, with an asymptotic variance equal to $\frac {(1-q_0).q_0^2}{n}$.
+We could have gotten these results using the fact that the log-likelihood satisfies the regularity conditions hence the estimator is asymptotically Gaussian with 
+$$
+\sqrt{n} (\hat q - q_0) \xrightarrow[]{d} \mathcal{N}(0, I^{-1}(q_0))
+$$
+where $I^{-1}(q_0)$ is the Fischer Information at $q_0$.
+
+### Asymptotic Confidence interval for q
+
+Let's calculate a $(1-\alpha)$-confidence interval for $q$.
+We proved that:
+$$
+\sqrt{n} (\overline X_n - \frac {1}{q_0}) \xrightarrow[]{d} \mathcal{N}(0, \frac{1-q_0}{q_0^2})
+$$
+Hence,
+$$
+\frac {(\overline X_n - \frac {1}{q_0})}{\sqrt{ \frac{1-q_0)}{n.q_0^2}}} \sim \mathcal{N}(0,1)
+$$
+Let $z$ be the critical value of the standard normal distribution for a 0.95 confidence level.
+So:
+
+$$
+\frac {(\overline X_n - \frac {1}{q_0})}{\sqrt{ \frac{1-q_0}{n.q_0^2}}}\in\ [-z,z]
+$$
+So the confidence interval, is the interval values of $q_0$ that satisfies the previous condition.
+
+We solve the equation
+
+$$
+\frac {(\overline X_n - \frac {1}{q_0})}{\sqrt{ \frac{1-q_0}{n.q_0^2}}} = z \\
+\iff n.\overline X_n.q_0^2 + (z^2 - 2.n.\overline X_n) + n-z^2 = 0
+$$
+By solving this equation in R (see below) we get two solutions for $q_0$ which constitute the value bounds of the confidence interval.
+
+## Application
+
+### Estimate the fraud probability
+
+```{r fraud probability estimation}
+data = c(44, 09, 11, 59, 81, 44, 19, 89, 10, 24,
+         07, 21, 90, 38, 01, 15, 22, 29, 19, 37,
+         26, 219, 02, 57, 11, 34, 69, 12, 21, 28,
+         34, 05, 07, 15, 06, 129, 14, 18, 02, 156)
+fraud_estimator <- function(X){ 
+  return(length(X)/sum(X))
+}
+
+
+prob = fraud_estimator(data)
+cat("fraud probability estimation : ",prob)
+```
+
+### Verify with a plot the property "asymptotic normality" for the estimator
+```{r asymptotic normality}
+
+N = 10000
+Nv = 10000
+vals = c(1:Nv)
+for (i in 1:Nv)
+{
+  U = rgeom(N, prob)
+  X = sum(U)/length(U)
+  p_hat = 1/X
+  vals[i] = p_hat
+}
+d = as.data.frame(vals, col.names="x")
+ggplot(data=d, aes(x=vals, y=..density..)) + geom_histogram(binwidth=0.00005)
+```
+
+### Compute the confidence interval
+
+```{r}
+# Constructing Quadratic Formula
+result <- function(a,b,c){
+  if(delta(a,b,c) > 0){ # first case D>0
+        x_1 = (-b+sqrt(delta(a,b,c)))/(2*a)
+        x_2 = (-b-sqrt(delta(a,b,c)))/(2*a)
+        result = c(x_1,x_2)
+  }
+  else if(delta(a,b,c) == 0){ # second case D=0
+        x = -b/(2*a)
+  }
+  else {"There are no real roots."} # third case D<0
+}
+
+# Constructing delta
+delta<-function(a,b,c){
+      b^2-4*a*c
+}
+
+
+
+calculate_bounds <- function(data){
+  n <- length(data)
+  sample_mean = sum(data)/n
+  alpha <- 0.05
+  z <- qnorm(1 - alpha/2)
+  
+  A = n*sample_mean^2
+  B = z^2 - 2*n*sample_mean
+  C = n - z^2
+  
+  return (result(A,B,C))
+}
+
+```
+```{r}
+c = calculate_bounds(data)
+cat("Confidence Interval : [",c[2]," , ",c[1],"]")
+```
+
+#### Validate the confidence interval with simulations
+
+```{r}
+ratio = sum(vals>=c[1] | vals<=c[2])/length(vals)
+cat("ratio of simulated values of q outside the confidence interval ",ratio ,"%")
+```

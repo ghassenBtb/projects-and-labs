@@ -1,0 +1,306 @@
+---
+title: "Lab 3"
+output: html_notebook
+---
+# Exercice 1: Delaying Deaths testing
+
+### Statistical model <br>
+We denote $p$ as the probability of dying before the Jewish religious holiday. <br>
+If we consider a population of n persons, we define the random variable $X_i$ for each person $i$ as follow <br>
+$X_i = 1$ if person $i$ dies before the Jewish religious holiday, and $X_i=0$ if not. <br>
+Hence $X_i$ follow a bernoulli distribution with parameter $p$. <br>
+We can consider the following statistical model $S = \sum_{i=1}^{n} X_i$ that counts the number of persons that die before the Jewish religiuous holiday. <br>
+S is the sum of independent Bernoulli random variables hence it obeys the binomial distribution with parameters $n$ and $p$.
+
+### Hypothesis <br>
+Let $H_0$ be the hypothesis “dying persons cannot delay their death”. Hence the event of dying before does not depend on any event, and dying before or after are of the same probability. <br>
+$H_1$ is the hypothesis "dying persons can delay their death" which mean that it's less probable for them to dye before the Jewish religious holiday $p< \frac{1}{2}$) <br>
+The binary hypothesis test becomes:
+$$
+H_0 : p = p_0 = \frac{1}{2} \\
+H_1 : p = p_1 <\frac{1}{2}
+$$
+
+### Asymptotic test <br>
+We can use the binomial variable for our test, but calculating probabilities for binomial random variables are computationally expensive. <br>
+Hence we will use normal approximation. <br>
+For N very large, we can apply the central limit theorem
+$$
+\frac {\sum_{i=1}^{n}X_i - E[X_i]}{\sqrt{\frac{Var[X_i]}{n}}} \xrightarrow[]{d} \mathcal{N}(0, 1) \\
+\implies  \frac {\sum_{i=1}^{n}X_i - n.p}{\sqrt{n.p.(1-p)}} \xrightarrow[]{d} \mathcal{N}(0, 1)
+$$
+Let $z$ be the critical value of the standard normal distribution of a $(1-\alpha)$ confidence level. <br>
+Under $H_0$ we suppose that $p=p_0=\frac{1}{2}$, so we have 
+$$
+\frac {\sum_{i=1}^{n}X_i - n.p_0}{\sqrt{n.p_0.(1-p_0)}} \in\ [-z,z] \\
+\implies \sum_{i=1}^{n}X_i \in [n.p_0 - z.\sqrt{n.p_0.(1-p_0)}, n.p_0 + z.\sqrt{n.p_0.(1-p_0)}]
+$$
+To check if the $H_0$ is True, we check if the number of deaths before the Jewish religious holiday (under the null Hypothesis) is inside the previously defined interval or not. 
+```{r}
+n = 1919
+alpha <- 0.05
+p <- 0.5
+#the critical value
+z <- qnorm(1 - alpha/2)
+#the lower bound in the interval
+a <- n*p - z*sqrt(n*p*(1-p))
+#the upper bound in the interval
+b <- n*p + z*sqrt(n*p*(1-p))
+
+cat("the interval is[",a," , ",b,"]")
+```
+We know that $922$ person died before the Jewish religious holiday, 922 is inside the defined interval, so we are 95% confident that dying people cannot delay their deaths. <br>
+So the UMP test at level $\alpha=0.05$ tells us to accept the null Hypothesis. <br>
+
+### UMP test <br>
+
+As previously defined, each $X_i$ is a Bernoulli random variable with parameter p.
+$$
+P(X_i = x_i) = p^{x_i}.(1-p)^{1-x_i}
+$$
+The Likelihood of the sample of $n$ persons $X_1, ...,X_n$ is:
+$$
+\begin{align*}
+\mathcal{L}(x|p) &= \prod_{i=1}^{n}P(X_i=x_i) \\
+&= \prod_{i=1}^{n}p^{x_i}.(1-p)^{1-x_i} \\
+&= p^{\sum_{i=1}^{n}x_i} . (1-p)^{n-\sum_{i=1}^{n}x_i}
+\end{align*}
+$$
+Given the Neyman-Pearson Lemma, the rejection region of the UMP test of size $\alpha$ is given by:
+$$
+\frac{\mathcal{L}(x|p_0)}{\mathcal{L}(x|p_1)}<K \\
+\implies  \frac{(1-p_0)^n}{(1-p_1)^n}.(\frac{p_0.(1-p_0)}{p_1.(1-p_1)})^{\sum_{i=1}^{n}x_i} < K \\
+$$
+Given that $p_0 = \frac{1}{2}$ and $p_1<\frac{1}{2}$ we get:
+
+\begin{align*}
+
+\sum_{i=1}^{n}x_i <& \frac{log(K.2^n.(1-p_1)^n)}{log(\frac{1-p_1}{p_1})} \\
+
+
+\sum_{i=1}^{n}x_i <& A \qquad\text{where}\qquad A = \frac{log(K.2^n.(1-p_1)^n)}{log(\frac{1-p_1}{p_1})}
+\end{align*}
+
+The rejection region of the UMP test for $H_0: p=\frac{1}{2}$ against $H_1: p=p_1<\frac{1}{2}$ has the general form:
+$$
+W = \{x:\sum_{i=1}^{n}x_i <A\}
+$$
+for the UMP test at level $\alpha$, the critical value $A$ is determined by 
+$$
+\begin{align*}
+\alpha =& P (W|H_0) \\
+=&P(\sum_{i=1}^{n}x_i<A | H_0) \\
+=&\phi(A) \qquad\text{where}\qquad \phi \qquad\text{is the Cumulative distribution function of a binomial disribution}\qquad
+\end{align*}
+$$
+Hence $A = \phi^{-1}(\alpha)$ and the rejection region of the UMP test of size $\alpha$ is 
+$$
+W = \{x:\sum_{i=1}^{n}x_i <\phi^{-1}(\alpha)\}
+$$
+
+### Testing and conclusion <br>
+
+From the given data we have that $\sum_{i=1}^{n}x_i = 922$.
+We also have:
+
+\begin{align*}
+
+P(X\leqslant923) =& P(X\leqslant922) + P(X=923) \\
+=&0.0456 + 0.0045 \\
+=& 0.051
+\end{align*}
+
+The cumulative Distribution function of a binomial distribution is an increasing function hence its inverse is a decreasing function :
+$$
+\phi^{-1}(0.051)=923\leqslant\phi^{-1}(0.05)
+$$
+Hence
+$\sum_{i=1}^{n}x_i = 922 <\phi^{-1}(0.05)$ <br>
+**Conclusion:** <br>
+Given the UMP test at level $\alpha$ we reject the null Hypothesis and we conclude that dying persons can delay their deaths !
+
+# Exercice 2: Call center <br>
+We can use a Poisson distribution to model our data distribution. <br>
+The parameter $\lambda$ of the Poisson distribution is given by the mean of the incoming calls per second:
+$$
+\lambda = \frac{6*0 + 1*15 + 2*40 + ...+ 11*1}{200} = 3.7
+$$
+Our hypothesis are: <br>
+$H_0 :$The empirical distribution fit a poisson distribution with $\lambda=3.7$ <br>
+$H_1 :$The empirical distribution does not fit a posson distribution with $\lambda=3.7$ <br>
+
+We will build a $\chi^2$ test for this.  <br>
+for $i=0,..,11$ we define: <br>
+- $O_i :$ number of seconds in which we received $i$ incoming calls  <br>
+- $E_i :$ The expected number of seconds in which we receive $i$ incoming calls, $E_i = 200. \frac{e^{-\lambda}.\lambda^i}{i!}$ <br>
+**Note** : We treat the last two bins corresponding to Number of incoming calls$=11$ and Number of incoming calls $>11$ as one (as no seconds contained 1 or more incoming calls). <br>
+The $\chi^2$ test is 
+
+$$
+\chi^2 = \sum_{i=0}^{11} \frac{(E_i - O_i)^2}{E_i}
+$$
+
+```{r}
+E <-c(0.0247,0.0915,0.1692,0.2087,0.1931,0.1429,0.0881,0.0466,0.0215,0.0089,0.0033,0.0015)
+E <- E*200
+O <- c(6,15,40,42,37,30,10,9,5,3,2,1)
+
+chi = 0
+for (i in 1:12){
+  chi = chi + (E[i] - O[i])**2 /E[i]
+}
+
+cat("chi value is:",chi)
+```
+
+We accept $H_0$ because our sample gives a value
+$$
+\chi_{8,0.05}^{2} <\chi_{10,0.05}^{2} \\
+\implies 
+\chi_{0}^{2}  < \chi_{8,0.05}^{2} = 14.07 <\chi_{10,0.05}^{2}
+$$
+The degree of freedom in equal to 10. We lost 2 degree of freedom because we estimated $\lambda$. <br>
+What would give the distribution fitting if it was a Poisson distribution with a parameter $λ_0=37$? <br>
+It would give the following expected number of incoming calls per seconds <br>
+```{r}
+E <-c(0.0247,0.0915,0.1692,0.2087,0.1931,0.1429,0.0881,0.0466,0.0215,0.0089,0.0033,0.0015)
+E <- E*200
+cat("expected number of incoming calls per seconds : ",E)
+```
+
+
+# Exercice 3: Coin Toss
+
+We simulate $n$ coin tosses with a fixed probability $p$ where p is the probability of getting head. <br> 
+Let's $X$ be the random variable for a coin toss experience that indicates whether the coin lands heads up. <br>
+$X = 1$ refers to head and $X=0$ refers to tails. <br>
+Let the n-sample $(X_1,...,X_n) i.i.d$ with values in {0,1}. <br>
+$X_i$ follows a Bernoulli distribution with parameter p.
+$$
+P(X_i = 1) = p \\
+P(X_i = 0) = 1-p \\
+E(X_i) = p\\
+V[X_i] = p.(1-p)
+$$
+We want to test if the coin is biased or not. Let $H_0$ be the hypothesis that the coin is not biased and $H_1$ be the hypothesis that the coin is biased.
+$$
+H_0 : p = p_0 = \frac{1}{2} \\
+H_1 : p \neq p_0
+$$
+$\sum_{i=1}^{n}X_i$ is the sum of independent Bernoulli random variables hence it obeys the binomial distribution. <br>
+We can use the binomial variable for our test, but calculating probabilities for binomial random variables are computationally expensive. <br>
+Hence we will use normal approximation.
+For N very large, we can apply the central limit theorem
+$$
+\frac {\sum_{i=1}^{n}X_i - E[X_i]}{\sqrt{\frac{Var[X_i]}{n}}} \xrightarrow[]{d} \mathcal{N}(0, 1) \\
+\implies  \frac {\sum_{i=1}^{n}X_i - n.p}{\sqrt{n.p.(1-p)}} \xrightarrow[]{d} \mathcal{N}(0, 1)
+$$
+Let $z$ be the critical value of the standard normal distribution of a $(1-\alpha)$ confidence level.
+Under $H_0$ we suppose that the coin is not biased, so we have 
+$$
+\frac {\sum_{i=1}^{n}X_i - n.p_0}{\sqrt{n.p_0.(1-p_0)}} \in\ [-z,z] \\
+\implies \sum_{i=1}^{n}X_i \in [n.p_0 - z.\sqrt{n.p_0.(1-p_0)}, n.p_0 + z.\sqrt{n.p_0.(1-p_0)}]
+$$
+To check if the coin is biased, we check if the number of Head (under the null Hypothesis) is inside the previously defined interval or not. 
+
+### Simulate coin tosses
+```{r}
+#simulate coin toss
+p <- 0.5
+toss_simul <- sample(c(0,1), size = 10000, prob=c(p,p),replace=TRUE)
+n <- length(toss_simul)
+#the critical value
+alpha <- 0.05
+z <- qnorm(1 - alpha/2)
+#the lower bound in the interval
+a <- n*p - z*sqrt(n*p*(1-p))
+#the upper bound in the interval
+b <- n*p + z*sqrt(n*p*(1-p))
+
+number_heads = sum(toss_simul)
+cat("number of heads is", number_heads," is in Confidence Interval : [",a," , ",b,"]")
+```
+Hence we accept $H_0$. <br>
+
+### Empirical Verification
+We repeat $N_r$ times the simulation of $n$ coin tosses with probability of getting head $p = 1/2$. <br>
+We will compute the number of simulations where the asymptotic test with level $\alpha$ is verified.
+
+```{r}
+count <- 0
+n = 10000
+Nr = 10000
+p=0.5
+head_counts = c(1:Nr)
+for (i in 1:Nr)
+{
+  toss_simul <- sample(c(0,1), size = n, prob=c(p,p),replace=TRUE)
+  number_heads = sum(toss_simul)
+  head_counts[i] = number_heads
+  if (number_heads > b || number_heads < a){
+    count <- count + 1
+  }
+}
+cat("ratio of biased tosses ", count/Nr)
+```
+The ratio of biased tosses is $0.0476<0.05$. <br>
+HEnce the asymptotic level of the test is verified. <br>
+We can plot the distribution of the number of heads in the simulations, to check its asymptotic nature.
+
+```{r}
+d = as.data.frame(head_counts, col.names="x")
+ggplot(data=d, aes(x=head_counts, y=..density..)) + geom_histogram(binwidth=5)
+```
+
+
+
+# Exercice 4 : Rock-paper-scissors
+
+We want to check if the player choose between these options randomly, or if some options are favored.<br>
+
+We can formulate the hypothesis as follow :<br>
+$H_0 :$ There is equal chance of $1/3$ to choose each option<br>
+$H_1 :$ One of the options are favored with chance $\neq 1/3$<br>
+<br>
+We will use a $\chi^2$ statistic to test the goodness of fit. <br>
+<br>
+Let $N_0,N_1, N_2$ be the counting statistic for number of played-options (paper, rock, scissor) respectively.<br> Let $p_0, p_1, p_2$ be the empirical frequency of respectively obtaining paper, rock or scissors. 
+
+$$
+\hat p_0 = \frac{N_0}{n} \\
+\hat p_1 = \frac{N_1}{n} \\
+\hat p_2 = \frac{N_2}{n} \\
+$$
+Under the null Hypothesis, let's define the following statistic :
+
+$$
+\xi_n = n . \frac{(\hat p_0 - \frac{1}{3})^2 + (\hat p_1-\frac{1}{3})^2 + (\hat p_2 - \frac{1}{3})^2}{\frac {1}{3}}
+$$
+
+When $n \rightarrow \infty$ $\xi_n$ converges in distribution towards a ${\chi^2}$-distribution with $2$ degree of freedom.<br>
+<br>
+The test is defined by the critical region :
+$$
+W_n = \{\xi_n>q_{m-1}(1-\alpha)\}
+$$
+where $q_{m-1}(1-\alpha)$ is the quantile of order $(1-\alpha)$ of the $\chi^2$-distribution
+
+```{r}
+data <- c(43,21,35)
+n <- sum(data)
+p0_hat = data[1]/n
+p1_hat = data[2]/n
+p2_hat = data[3]/n
+
+xi_n = 3*n*((p0_hat-1/3)**2 + (p1_hat-1/3)**2 + (p2_hat-1/3)**2)
+
+
+alpha = 0.05
+q = qchisq(1-alpha, df=2)
+
+cat("statistic value :",xi_n, " critical value:",q)
+```
+
+
+the $\chi^2$ test value is greater than the critical value, Thus we reject the null hypothesis for a significance level of $0.05$. <br>
+We conclude that the players didn't choose the paper/rock/scissors randomly.
