@@ -29,6 +29,13 @@ Specify ```--data-crop``` where data is located.
 ```bash
 python main.py --data <folder-directory>
 ```
+When training is finished, accuracy and loss are plotted and saved.
+The following plots are obtained when training whith resnext101.
+<p float="left">
+  <img src="resnext101_accuracy.jpg" width="100" />
+  <img src="resnext101_loss.jpg" width="100" /> 
+</p>
+
 
 #### Test
 
