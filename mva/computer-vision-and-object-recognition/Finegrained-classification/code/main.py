@@ -12,7 +12,9 @@ from torchsummary import summary
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 def summary_trainable(learner):
-    #Return the model architechture with the number of trainable parameters per layer
+    """
+    Return the model architechture with the number of trainable parameters per layer
+    """
     result = []
     total_params_element = 0
     def check_trainable(module):
