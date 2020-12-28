@@ -1,5 +1,8 @@
 ## Fine-Grained bird species classification
 
+### Challenge
+[Here](https://www.kaggle.com/c/mva-recvis-2020/leaderboard) is the kaggle challenge. The dataset can be downloaded from [here](https://www.kaggle.com/c/mva-recvis-2020/data).
+
 ### Code
 
 #### Install dependencies
