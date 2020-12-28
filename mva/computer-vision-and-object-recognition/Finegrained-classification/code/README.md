@@ -2,6 +2,7 @@
 
 ### Challenge
 [Here](https://www.kaggle.com/c/mva-recvis-2020/leaderboard) is the kaggle challenge. The dataset can be downloaded from [here](https://www.kaggle.com/c/mva-recvis-2020/data).
+My final rank on the Leadearboard was 49 out of 167 participants, with a test accuracy score of 0.84254
 
 ### Code
 
