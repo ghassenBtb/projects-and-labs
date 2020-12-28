@@ -26,7 +26,7 @@ python crop.py --data-crop <folder-directory>
 
 #### Train
 Train the model. As the model trains, model checkpoints are saved to files such as `model_x.pth` to the current working directory.
-Specify ```--data-crop``` where data is located.
+Specify ```--data``` where data is located.
 ```bash
 python main.py --data <folder-directory>
 ```
